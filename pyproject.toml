@@ -8,6 +8,7 @@ dependencies = [
     "python-telegram-bot>=22.0",
     "agno",
     "python-dotenv>=1.0",
+    "openai>=2.30.0",
 ]
 
 [project.optional-dependencies]
