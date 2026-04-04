@@ -3,21 +3,22 @@ from __future__ import annotations
 import asyncio
 import logging
 
+import openai
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
-from nicode_claw.agent.agent import connect_mcp, create_agent, disconnect_mcp
-from nicode_claw.scheduler import run_scheduler
+from nicode_claw.agent.agent import connect_mcp, create_agent
 from nicode_claw.bot.handlers import (
     handle_audio,
     handle_document,
     handle_photo,
     handle_text,
-    set_agent,
-    set_allowed_user_ids,
     start_command,
 )
+from nicode_claw.bot.telegram_tools import TelegramTools
 from nicode_claw.config import Settings
+from nicode_claw.context import AppContext
+from nicode_claw.scheduler import SchedulerTools, run_scheduler
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -28,21 +29,33 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     settings = Settings.from_env()
-    set_allowed_user_ids(settings.allowed_user_ids)
+
+    telegram_tools = TelegramTools()
+    scheduler_tools = SchedulerTools()
 
     async def post_init(application: Application) -> None:
-        mcp = await connect_mcp()
-        agent = create_agent(db_path=settings.db_path, mcp_tools=mcp)
-        set_agent(agent)
+        mcp = await connect_mcp(settings)
+        agent = create_agent(settings, telegram_tools, scheduler_tools, mcp)
+        ctx = AppContext(
+            settings=settings,
+            agent=agent,
+            telegram_tools=telegram_tools,
+            scheduler_tools=scheduler_tools,
+            openai_client=openai.AsyncOpenAI(),
+            mcp_tools=mcp,
+        )
+        application.bot_data["ctx"] = ctx
         if settings.allowed_user_ids:
             chat_id = settings.allowed_user_ids[0]
             user_id = str(chat_id)
             asyncio.create_task(
-                run_scheduler(agent, application.bot, chat_id, user_id)
+                run_scheduler(ctx, application.bot, chat_id, user_id)
             )
 
     async def post_shutdown(application: Application) -> None:
-        await disconnect_mcp()
+        ctx: AppContext | None = application.bot_data.get("ctx")
+        if ctx and ctx.mcp_tools:
+            await ctx.mcp_tools.close()
 
     app = (
         Application.builder()
