@@ -26,12 +26,7 @@
       "sourceType": "github",
       "computedHash": "6b8b859d26f93aa059c9870d1ab76b44ab69e3d6757ce4a03cc94cb760888073"
     },
-    "react:components": {
-      "source": "google-labs-code/stitch-skills",
-      "sourceType": "github",
-      "computedHash": "01a94f035a1c3a1a405f611c0df212433d8973f18bf16e94540875ec58ee7b9b"
-    },
-    "remotion": {
+"remotion": {
       "source": "google-labs-code/stitch-skills",
       "sourceType": "github",
       "computedHash": "73a794b428f2bb568859f0db83b66219c842a0a088db9818a45ac72c37b6aa66"
