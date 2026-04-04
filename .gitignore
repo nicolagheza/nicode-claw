@@ -6,4 +6,3 @@ dist/
 *.egg-info/
 tmp/
 data/
-.agents/skills/
