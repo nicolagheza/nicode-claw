@@ -36,6 +36,7 @@ def create_mcp(settings: Settings) -> MCPTools:
             url="https://stitch.googleapis.com/mcp",
             headers={"X-Goog-Api-Key": settings.google_stitch_api_key},
         ),
+        timeout_seconds=120,
         refresh_connection=True,
     )
 
