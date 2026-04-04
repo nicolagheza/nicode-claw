@@ -9,12 +9,17 @@ dependencies = [
     "agno",
     "python-dotenv>=1.0",
     "openai>=2.30.0",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "pytest-asyncio>=0.24",
+    "sqlalchemy>=2.0.48",
+    "duckduckgo-search>=8.1.1",
+    "duckdb>=1.5.1",
+    "ddgs>=9.12.1",
+    "matplotlib>=3.10.8",
+    "pandas>=3.0.2",
+    "pillow>=12.2.0",
+    "yfinance>=1.2.0",
+    "openpyxl>=3.1.5",
+    "mcp>=1.27.0",
+    "scikit-learn>=1.8.0",
 ]
 
 [build-system]
