@@ -6,11 +6,17 @@ import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from agno.tools.toolkit import Toolkit
 
 from nicode_claw.agent.agent import process_message
 from nicode_claw.formatting import reply_formatted
+
+if TYPE_CHECKING:
+    from telegram import Bot
+
+    from nicode_claw.context import AppContext
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +134,7 @@ def _cron_matches(cron: str, now: datetime) -> bool:
     )
 
 
-async def run_scheduler(ctx, bot, chat_id: int, user_id: str) -> None:
+async def run_scheduler(ctx: AppContext, bot: Bot, chat_id: int, user_id: str) -> None:
     logger.info("Scheduler started")
     while True:
         try:

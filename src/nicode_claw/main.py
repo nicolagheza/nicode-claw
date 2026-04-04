@@ -34,7 +34,7 @@ def main() -> None:
     scheduler_tools = SchedulerTools()
 
     async def post_init(application: Application) -> None:
-        mcp = await connect_mcp(settings)
+        mcp = await connect_mcp(settings) if settings.google_stitch_api_key else None
         agent = create_agent(settings, telegram_tools, scheduler_tools, mcp)
         ctx = AppContext(
             settings=settings,

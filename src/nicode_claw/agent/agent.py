@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import openai
 from agno.agent import Agent
@@ -23,7 +24,9 @@ from agno.tools.yfinance import YFinanceTools
 from nicode_claw.bot.telegram_tools import TelegramTools
 from nicode_claw.config import Settings
 from nicode_claw.install_tools import InstallTools
-from nicode_claw.scheduler import SchedulerTools
+
+if TYPE_CHECKING:
+    from nicode_claw.scheduler import SchedulerTools
 
 
 async def connect_mcp(settings: Settings) -> MCPTools:
