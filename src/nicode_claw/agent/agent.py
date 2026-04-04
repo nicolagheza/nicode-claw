@@ -29,8 +29,8 @@ if TYPE_CHECKING:
     from nicode_claw.scheduler import SchedulerTools
 
 
-async def connect_mcp(settings: Settings) -> MCPTools:
-    mcp = MCPTools(
+def create_mcp(settings: Settings) -> MCPTools:
+    return MCPTools(
         transport="streamable-http",
         server_params=StreamableHTTPClientParams(
             url="https://stitch.googleapis.com/mcp",
@@ -38,8 +38,6 @@ async def connect_mcp(settings: Settings) -> MCPTools:
         ),
         refresh_connection=True,
     )
-    await mcp.connect()
-    return mcp
 
 
 def _get_model(settings: Settings):

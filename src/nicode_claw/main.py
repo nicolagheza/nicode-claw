@@ -7,7 +7,7 @@ import openai
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
-from nicode_claw.agent.agent import connect_mcp, create_agent
+from nicode_claw.agent.agent import create_mcp, create_agent
 from nicode_claw.bot.handlers import (
     handle_audio,
     handle_document,
@@ -34,7 +34,7 @@ def main() -> None:
     scheduler_tools = SchedulerTools()
 
     async def post_init(application: Application) -> None:
-        mcp = await connect_mcp(settings) if settings.google_stitch_api_key else None
+        mcp = create_mcp(settings) if settings.google_stitch_api_key else None
         agent = create_agent(settings, telegram_tools, scheduler_tools, mcp)
         ctx = AppContext(
             settings=settings,
