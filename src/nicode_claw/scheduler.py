@@ -9,6 +9,9 @@ from pathlib import Path
 
 from agno.tools.toolkit import Toolkit
 
+from nicode_claw.agent.agent import process_message
+from nicode_claw.formatting import reply_formatted
+
 logger = logging.getLogger(__name__)
 
 JOBS_FILE = Path("data/scheduled_jobs.json")
@@ -125,10 +128,7 @@ def _cron_matches(cron: str, now: datetime) -> bool:
     )
 
 
-async def run_scheduler(agent, bot, chat_id: int, user_id: str) -> None:
-    from nicode_claw.agent.agent import process_message, telegram_tools
-    from nicode_claw.bot.handlers import reply_formatted
-
+async def run_scheduler(ctx, bot, chat_id: int, user_id: str) -> None:
     logger.info("Scheduler started")
     while True:
         try:
@@ -139,9 +139,9 @@ async def run_scheduler(agent, bot, chat_id: int, user_id: str) -> None:
                 if _cron_matches(job["cron"], now):
                     logger.info("Running scheduled job: %s", job["name"])
                     try:
-                        telegram_tools.set_context(bot, chat_id, asyncio.get_running_loop())
+                        ctx.telegram_tools.set_context(bot, chat_id, asyncio.get_running_loop())
                         response = await process_message(
-                            agent,
+                            ctx.agent,
                             f"[Scheduled task: {job['name']}]\n{job['prompt']}",
                             user_id=user_id,
                             session_id=str(chat_id),
