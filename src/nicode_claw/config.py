@@ -17,6 +17,10 @@ class Settings:
     model_provider: str = "openai"
     model_id: str = "gpt-5.4"
     google_stitch_api_key: str = ""
+    quiet_hours_start: int = 23
+    quiet_hours_end: int = 7
+    max_proactive_messages_per_hour: int = 5
+    reflection_interval_minutes: int = 15
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -43,4 +47,8 @@ class Settings:
             model_provider=os.environ.get("MODEL_PROVIDER", "openai"),
             model_id=os.environ.get("MODEL_ID", "gpt-5.4"),
             google_stitch_api_key=os.environ.get("GOOGLE_STITCH_API_KEY", ""),
+            quiet_hours_start=int(os.environ.get("QUIET_HOURS_START", "23")),
+            quiet_hours_end=int(os.environ.get("QUIET_HOURS_END", "7")),
+            max_proactive_messages_per_hour=int(os.environ.get("MAX_PROACTIVE_MESSAGES_PER_HOUR", "5")),
+            reflection_interval_minutes=int(os.environ.get("REFLECTION_INTERVAL_MINUTES", "15")),
         )
