@@ -18,6 +18,8 @@ from nicode_claw.bot.handlers import (
 from nicode_claw.bot.telegram_tools import TelegramTools
 from nicode_claw.config import Settings
 from nicode_claw.context import AppContext
+from nicode_claw.follow_up import FollowUpTools
+from nicode_claw.reflection import run_reflection_loop
 from nicode_claw.scheduler import SchedulerTools, run_scheduler
 
 logging.basicConfig(
@@ -32,16 +34,18 @@ def main() -> None:
 
     telegram_tools = TelegramTools()
     scheduler_tools = SchedulerTools()
+    follow_up_tools = FollowUpTools()
 
     async def post_init(application: Application) -> None:
         mcp = create_mcp(settings) if settings.google_stitch_api_key else None
-        agent = create_agent(settings, telegram_tools, scheduler_tools, mcp)
+        agent = create_agent(settings, telegram_tools, scheduler_tools, follow_up_tools, mcp)
         ctx = AppContext(
             settings=settings,
             agent=agent,
             telegram_tools=telegram_tools,
             scheduler_tools=scheduler_tools,
             openai_client=openai.AsyncOpenAI(),
+            follow_up_tools=follow_up_tools,
             mcp_tools=mcp,
         )
         application.bot_data["ctx"] = ctx
@@ -50,6 +54,9 @@ def main() -> None:
             user_id = str(chat_id)
             asyncio.create_task(
                 run_scheduler(ctx, application.bot, chat_id, user_id)
+            )
+            asyncio.create_task(
+                run_reflection_loop(settings, agent, application.bot, chat_id)
             )
 
     async def post_shutdown(application: Application) -> None:
