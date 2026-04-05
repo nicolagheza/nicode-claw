@@ -8,6 +8,7 @@ from agno.tools.mcp import MCPTools
 
 from nicode_claw.bot.telegram_tools import TelegramTools
 from nicode_claw.config import Settings
+from nicode_claw.follow_up import FollowUpTools
 from nicode_claw.scheduler import SchedulerTools
 
 
@@ -18,4 +19,5 @@ class AppContext:
     telegram_tools: TelegramTools
     scheduler_tools: SchedulerTools
     openai_client: openai.AsyncOpenAI
+    follow_up_tools: FollowUpTools | None = None
     mcp_tools: MCPTools | None = None
