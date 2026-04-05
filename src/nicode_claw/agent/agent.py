@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+from datetime import timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -23,6 +24,7 @@ from agno.tools.yfinance import YFinanceTools
 
 from nicode_claw.bot.telegram_tools import TelegramTools
 from nicode_claw.config import Settings
+from nicode_claw.follow_up import FollowUpTools
 from nicode_claw.install_tools import InstallTools
 
 if TYPE_CHECKING:
@@ -35,6 +37,7 @@ def create_mcp(settings: Settings) -> MCPTools:
         server_params=StreamableHTTPClientParams(
             url="https://stitch.googleapis.com/mcp",
             headers={"X-Goog-Api-Key": settings.google_stitch_api_key},
+            timeout=timedelta(seconds=120),
         ),
         timeout_seconds=120,
         refresh_connection=True,
@@ -51,6 +54,7 @@ def create_agent(
     settings: Settings,
     telegram_tools: TelegramTools,
     scheduler_tools: SchedulerTools,
+    follow_up_tools: FollowUpTools | None = None,
     mcp_tools: MCPTools | None = None,
 ) -> Agent:
     db = SqliteDb(db_file=settings.db_path)
@@ -70,6 +74,8 @@ def create_agent(
         telegram_tools,
         scheduler_tools,
     ]
+    if follow_up_tools:
+        tools.append(follow_up_tools)
     if mcp_tools:
         tools.append(mcp_tools)
 
@@ -84,6 +90,7 @@ def create_agent(
             "When you need to install a Python package, use the install_package tool.",
             "Files saved by FileTools are in tmp/files/. Files saved by PythonTools are in tmp/python/. Use the full path when calling send_file.",
             "For complex coding tasks, you can delegate to Claude Code via shell: claude -p 'your prompt here' --dangerously-skip-permissions --output-format text",
+            "When a conversation involves something that might benefit from a follow-up (a task in progress, a decision pending, something the user is tracking, an interesting topic), use create_follow_up to schedule one. Be eager — it's better to create a follow-up and have it turn out to be nothing than to miss something the user would have appreciated.",
         ],
         tools=tools,
         markdown=True,
