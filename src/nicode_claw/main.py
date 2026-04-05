@@ -7,7 +7,7 @@ import openai
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
-from nicode_claw.agent.agent import create_mcp, create_agent
+from nicode_claw.agent.factory import create_agent, create_mcp
 from nicode_claw.bot.handlers import (
     handle_audio,
     handle_document,
@@ -15,12 +15,13 @@ from nicode_claw.bot.handlers import (
     handle_text,
     start_command,
 )
-from nicode_claw.bot.telegram_tools import TelegramTools
-from nicode_claw.config import Settings
-from nicode_claw.context import AppContext
-from nicode_claw.follow_up import FollowUpTools
-from nicode_claw.reflection import run_reflection_loop
-from nicode_claw.scheduler import SchedulerTools, run_scheduler
+from nicode_claw.core.config import Settings
+from nicode_claw.core.context import AppContext
+from nicode_claw.services.reflection import run_reflection_loop
+from nicode_claw.services.scheduler import run_scheduler
+from nicode_claw.tools.follow_up import FollowUpTools
+from nicode_claw.tools.scheduler import SchedulerTools
+from nicode_claw.tools.telegram import TelegramTools
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",

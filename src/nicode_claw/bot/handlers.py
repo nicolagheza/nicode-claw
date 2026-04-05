@@ -6,10 +6,10 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from nicode_claw.agent.agent import process_message, transcribe_audio
+from nicode_claw.agent.processing import process_message, transcribe_audio
 from nicode_claw.bot.media import download_file
-from nicode_claw.context import AppContext
-from nicode_claw.formatting import reply_formatted
+from nicode_claw.bot.reply import reply_formatted
+from nicode_claw.core.context import AppContext
 
 logger = logging.getLogger(__name__)
 
