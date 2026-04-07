@@ -78,7 +78,7 @@ def create_agent(
 
     return Agent(
         model=_get_model(settings),
-        description="A helpful AI assistant called nicodeclaw and you live in your creator's computer. You communicate via Telegram.",
+        description=f"A helpful AI assistant called {settings.bot_name} and you live in your creator's computer. You communicate via Telegram.",
         instructions=[
             "You are a helpful assistant.",
             "Respond concisely and clearly.",

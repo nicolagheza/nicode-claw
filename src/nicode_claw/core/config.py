@@ -21,6 +21,7 @@ class Settings:
     quiet_hours_end: int = 7
     max_proactive_messages_per_hour: int = 5
     reflection_interval_minutes: int = 15
+    bot_name: str = "cleverakkaz"
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -30,9 +31,7 @@ class Settings:
         api_key = os.environ.get("OPENAI_API_KEY")
 
         if not token or not api_key:
-            raise ValueError(
-                "TELEGRAM_BOT_TOKEN and OPENAI_API_KEY must be set"
-            )
+            raise ValueError("TELEGRAM_BOT_TOKEN and OPENAI_API_KEY must be set")
 
         raw_ids = os.environ.get("ALLOWED_USER_IDS", "")
         allowed_ids = [int(x.strip()) for x in raw_ids.split(",") if x.strip()] or None
@@ -49,6 +48,11 @@ class Settings:
             google_stitch_api_key=os.environ.get("GOOGLE_STITCH_API_KEY", ""),
             quiet_hours_start=int(os.environ.get("QUIET_HOURS_START", "23")),
             quiet_hours_end=int(os.environ.get("QUIET_HOURS_END", "7")),
-            max_proactive_messages_per_hour=int(os.environ.get("MAX_PROACTIVE_MESSAGES_PER_HOUR", "5")),
-            reflection_interval_minutes=int(os.environ.get("REFLECTION_INTERVAL_MINUTES", "15")),
+            max_proactive_messages_per_hour=int(
+                os.environ.get("MAX_PROACTIVE_MESSAGES_PER_HOUR", "5")
+            ),
+            reflection_interval_minutes=int(
+                os.environ.get("REFLECTION_INTERVAL_MINUTES", "15")
+            ),
+            bot_name=os.environ.get("BOT_NAME", "cleverakkaz"),
         )
