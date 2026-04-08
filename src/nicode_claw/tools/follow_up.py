@@ -47,6 +47,16 @@ class FollowUpTools(Toolkit):
             Confirmation with the intent ID.
         """
         intents = load_intents()
+
+        # Deduplicate: if an active intent with a similar 'what' exists, update it instead
+        what_lower = what.lower()
+        for existing in intents:
+            if existing["status"] in ("pending", "checked") and existing["what"].lower() == what_lower:
+                existing["check_at"] = parse_check_in(check_in).isoformat()
+                existing["priority"] = priority
+                save_intents(intents)
+                return f"Follow-up already exists (ID: {existing['id']}), updated next check time."
+
         intent_id = str(uuid.uuid4())[:8]
         check_at = parse_check_in(check_in)
 
