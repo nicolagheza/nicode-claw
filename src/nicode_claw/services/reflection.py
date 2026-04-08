@@ -139,6 +139,7 @@ class ReflectionRunner:
                 if message:
                     await reply_formatted(self._bot, self._chat_id, message)
                     self._record_message()
+                    await self._log_to_user_session(message)
                     update_intent(intent["id"], {
                         "status": "reported",
                         "checks_done": intent["checks_done"] + 1,
@@ -153,6 +154,17 @@ class ReflectionRunner:
         except Exception:
             logger.exception("Reflection: error processing intent %s", intent["id"])
             self._reschedule_intent(intent, "1h")
+
+    async def _log_to_user_session(self, message: str) -> None:
+        """Log the reflection message to the user's conversation history."""
+        try:
+            await self._agent.arun(
+                f"[You proactively sent this message to the user]: {message}",
+                user_id=str(self._chat_id),
+                session_id=str(self._chat_id),
+            )
+        except Exception:
+            logger.exception("Reflection: failed to log message to user session")
 
     def _reschedule_intent(self, intent: dict, check_in: str) -> None:
         """Reschedule an intent for a later check."""
