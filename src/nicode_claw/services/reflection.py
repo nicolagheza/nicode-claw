@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
@@ -122,10 +123,13 @@ class ReflectionRunner:
             )
             response = run_output.content
 
+            # Strip markdown formatting before parsing
+            clean = self._strip_markdown(response)
+
             # Parse the response for verdict
-            if "VERDICT: YES" in response.upper():
+            if self._has_yes_verdict(clean):
                 # Extract message
-                message = self._extract_message(response)
+                message = self._extract_message(clean, response)
                 if message:
                     await reply_formatted(self._bot, self._chat_id, message)
                     self._record_message()
@@ -139,7 +143,7 @@ class ReflectionRunner:
                     self._reschedule_intent(intent, "1h")
             else:
                 # Extract reschedule time
-                reschedule = self._extract_reschedule(response)
+                reschedule = self._extract_reschedule(clean)
                 if reschedule == "expire":
                     update_intent(intent["id"], {
                         "status": "expired",
@@ -163,29 +167,56 @@ class ReflectionRunner:
         })
         logger.info("Reflection: rescheduled intent %s to %s", intent["id"], new_check_at)
 
-    def _extract_message(self, response: str) -> str | None:
-        """Extract the MESSAGE: line from a reflection response."""
-        for line in response.split("\n"):
-            stripped = line.strip()
-            if stripped.upper().startswith("MESSAGE:"):
-                return stripped[len("MESSAGE:"):].strip()
-        # If no MESSAGE: line found, look for content after VERDICT: YES
-        parts = response.split("VERDICT: YES", 1)
-        if len(parts) > 1:
-            remaining = parts[1].strip()
-            # Skip the RESCHEDULE line if present
-            lines = [l for l in remaining.split("\n") if not l.strip().upper().startswith("RESCHEDULE:")]
-            content = "\n".join(lines).strip()
-            if content:
-                return content
-        return None
+    @staticmethod
+    def _strip_markdown(text: str) -> str:
+        """Strip markdown bold/italic markers for reliable parsing."""
+        text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+        text = re.sub(r"__(.+?)__", r"\1", text)
+        text = re.sub(r"\*(.+?)\*", r"\1", text)
+        text = re.sub(r"_(.+?)_", r"\1", text)
+        return text
 
-    def _extract_reschedule(self, response: str) -> str:
-        """Extract the RESCHEDULE: value from a reflection response."""
-        for line in response.split("\n"):
+    @staticmethod
+    def _has_yes_verdict(clean_response: str) -> bool:
+        """Check if the response contains a YES verdict, tolerant of formatting variations."""
+        # Match patterns like "Verdict: Yes", "VERDICT: YES", "Verdict: Yes —"
+        return bool(re.search(r"verdict\s*:\s*yes", clean_response, re.IGNORECASE))
+
+    def _extract_message(self, clean: str, original: str) -> str | None:
+        """Extract the message to send from a reflection response."""
+        # Look for explicit MESSAGE: line
+        for line in clean.split("\n"):
             stripped = line.strip()
-            if stripped.upper().startswith("RESCHEDULE:"):
-                return stripped[len("RESCHEDULE:"):].strip().lower()
+            if re.match(r"message\s*:", stripped, re.IGNORECASE):
+                return re.sub(r"^message\s*:\s*", "", stripped, flags=re.IGNORECASE).strip()
+
+        # Fallback: take everything after the verdict line, excluding meta lines
+        lines = original.split("\n")
+        past_verdict = False
+        content_lines = []
+        for line in lines:
+            stripped = line.strip()
+            clean_line = self._strip_markdown(stripped)
+            if re.match(r"verdict\s*:", clean_line, re.IGNORECASE):
+                past_verdict = True
+                continue
+            if not past_verdict:
+                continue
+            # Skip meta lines
+            if re.match(r"(reschedule|message)\s*:", clean_line, re.IGNORECASE):
+                continue
+            content_lines.append(stripped)
+
+        content = "\n".join(content_lines).strip()
+        return content if content else None
+
+    def _extract_reschedule(self, clean_response: str) -> str:
+        """Extract the RESCHEDULE value from a reflection response."""
+        for line in clean_response.split("\n"):
+            stripped = line.strip()
+            match = re.match(r"reschedule\s*:\s*(.+)", stripped, re.IGNORECASE)
+            if match:
+                return match.group(1).strip().lower()
         return "1h"
 
 
