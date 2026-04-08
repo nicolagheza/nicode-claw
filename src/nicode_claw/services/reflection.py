@@ -28,7 +28,7 @@ REFLECTION_INSTRUCTIONS = """You are in reflection mode. You are reviewing follo
 For each intent you receive, you must:
 1. Execute the check described in the intent using your available tools (search, finance data, code execution, etc.)
 2. Evaluate: is the result noteworthy enough to message the user?
-3. Respond with your finding and a clear YES or NO verdict on whether to message the user.
+3. Respond with your verdict.
 
 Guidelines:
 - Be proactive but respect the user's attention — only recommend messaging if you have something genuinely useful to say.
@@ -40,10 +40,17 @@ Guidelines:
   - "🔔 Quick follow-up" — for task follow-ups
   - "⚡ Heads up" — for monitoring alerts
 
-Respond in this format:
-VERDICT: YES or NO
-MESSAGE: (only if YES) The exact message to send to the user.
-RESCHEDULE: (only if NO) A relative time for when to check again, e.g. "1h", "6h", "1d". Or "expire" if no further checks are useful."""
+CRITICAL: You MUST end your response with EXACTLY one of these lines (no markdown, no bold, no extra text on the line):
+
+VERDICT: YES
+MESSAGE: <the exact message to send to the user>
+
+or
+
+VERDICT: NO
+RESCHEDULE: <relative time like "1h", "6h", "1d", or "expire">
+
+These MUST be the last lines of your response. Do NOT use markdown formatting on these lines."""
 
 
 def _is_quiet_hours(settings: Settings) -> bool:
@@ -179,8 +186,16 @@ class ReflectionRunner:
     @staticmethod
     def _has_yes_verdict(clean_response: str) -> bool:
         """Check if the response contains a YES verdict, tolerant of formatting variations."""
-        # Match patterns like "Verdict: Yes", "VERDICT: YES", "Verdict: Yes —"
-        return bool(re.search(r"verdict\s*:\s*yes", clean_response, re.IGNORECASE))
+        # Explicit "Verdict: YES"
+        if re.search(r"verdict\s*:\s*yes", clean_response, re.IGNORECASE):
+            return True
+        # Explicit "Verdict: NO" means definitely not yes
+        if re.search(r"verdict\s*:\s*no\b", clean_response, re.IGNORECASE):
+            return False
+        # If there's a MESSAGE: line, the LLM intended YES even without saying it
+        if re.search(r"^message\s*:", clean_response, re.IGNORECASE | re.MULTILINE):
+            return True
+        return False
 
     def _extract_message(self, clean: str, original: str) -> str | None:
         """Extract the message to send from a reflection response."""
