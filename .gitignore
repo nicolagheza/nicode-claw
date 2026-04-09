@@ -6,3 +6,4 @@ dist/
 *.egg-info/
 tmp/
 data/
+.DS_Store
